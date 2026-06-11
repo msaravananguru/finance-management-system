@@ -16,151 +16,103 @@ import com.finance.app.repository.UserAccountRepository;
 @Service
 public class AccountService {
 
-    @Autowired
-    private UserAccountRepository repository;
+	@Autowired
+	private UserAccountRepository repository;
 
-    public CommonResponse createAccount(CreateAccountRequest request) {
+	public CommonResponse createAccount(CreateAccountRequest request) {
 
-        UserAccount account = new UserAccount();
+		UserAccount account = new UserAccount();
 
-        account.setUserId(1L);
-        account.setAccountName(request.getAccountName());
-        account.setAccountType(request.getAccountType());
-        account.setOpeningBalance(request.getOpeningBalance());
-        account.setCurrentBalance(request.getOpeningBalance());
-        account.setIsDefault(request.getIsDefault());
-        account.setStatus("ACTIVE");
+		account.setUserId(1L);
+		account.setAccountName(request.getAccountName());
+		account.setAccountType(request.getAccountType());
+		account.setOpeningBalance(request.getOpeningBalance());
+		account.setCurrentBalance(request.getOpeningBalance());
+		account.setIsDefault(request.getIsDefault());
+		account.setStatus("ACTIVE");
 
-        boolean exists =
-        		repository.existsByUserIdAndAccountName(
-        		        1L,
-        		        request.getAccountName());
-        
-        if(exists) {
+		boolean exists = repository.existsByUserIdAndAccountName(1L, request.getAccountName());
 
-            return new CommonResponse(
-                    false,
-                    "Account Already Exists",
-                    null);
-        }
-        
-        if(Boolean.TRUE.equals(
-                request.getIsDefault())) {
+		if (exists) {
 
-        	List<UserAccount> defaults =
-        	        repository.findByUserIdAndIsDefault(
-        	                1L,
-        	                true);
+			return new CommonResponse(false, "Account Already Exists", null);
+		}
 
-        	for (UserAccount existingAccount : defaults) {
+		if (Boolean.TRUE.equals(request.getIsDefault())) {
 
-        	    existingAccount.setIsDefault(false);
+			List<UserAccount> defaults = repository.findByUserIdAndIsDefault(1L, true);
 
-        	    repository.save(existingAccount);
-        	}
-        }
-        
-        repository.save(account);
+			for (UserAccount existingAccount : defaults) {
 
-        return new CommonResponse(
-                true,
-                "Account Created Successfully",
-                account
-        );
-    }
-    public CommonResponse getAllAccounts() {
+				existingAccount.setIsDefault(false);
 
-        return new CommonResponse(
-                true,
-                "Accounts Fetched Successfully",
-                repository.findByUserIdAndStatus(
-                        1L,
-                        "ACTIVE")
-        );
-    }
-    
-    public CommonResponse getAccountDetails(
-            AccountDetailsRequest request) {
+				repository.save(existingAccount);
+			}
+		}
 
-        UserAccount account =
-                repository.findById(request.getAccountId())
-                .orElse(null);
+		repository.save(account);
 
-        return new CommonResponse(
-                true,
-                "Account Found",
-                account
-        );
-    }
-    
-    public CommonResponse deleteAccount(
-            DeleteAccountRequest request) {
+		return new CommonResponse(true, "Account Created Successfully", account);
+	}
 
-        UserAccount account =
-                repository.findById(
-                        request.getAccountId())
-                        .orElse(null);
+	public CommonResponse getAllAccounts() {
 
-        if(account == null) {
+		return new CommonResponse(true, "Accounts Fetched Successfully",
+				repository.findByUserIdAndStatus(1L, "ACTIVE"));
+	}
 
-            return new CommonResponse(
-                    false,
-                    "Account Not Found",
-                    null);
-        }
+	public CommonResponse getAccountDetails(AccountDetailsRequest request) {
 
-        account.setStatus("DELETED");
+		UserAccount account = repository.findById(request.getAccountId()).orElse(null);
 
-        repository.save(account);
+		return new CommonResponse(true, "Account Found", account);
+	}
 
-        return new CommonResponse(
-                true,
-                "Account Deleted Successfully",
-                null);
-    }
-    public CommonResponse updateAccount(
-            UpdateAccountRequest request) {
+	public CommonResponse deleteAccount(DeleteAccountRequest request) {
 
-        UserAccount account =
-                repository.findById(
-                        request.getAccountId())
-                        .orElse(null);
+		UserAccount account = repository.findById(request.getAccountId()).orElse(null);
 
-        if(account == null) {
+		if (account == null) {
 
-            return new CommonResponse(
-                    false,
-                    "Account Not Found",
-                    null);
-        }
+			return new CommonResponse(false, "Account Not Found", null);
+		}
 
-        account.setAccountName(
-                request.getAccountName());
-        
-        if(Boolean.TRUE.equals(
-                request.getIsDefault())) {
+		account.setStatus("DELETED");
 
-            List<UserAccount> defaults =
-                    repository.findByUserIdAndIsDefault(
-                            1L,
-                            true);
+		account.setIsDefault(false);
 
-            for(UserAccount existingAccount : defaults) {
+		repository.save(account);
 
-                existingAccount.setIsDefault(false);
+		return new CommonResponse(true, "Account Deleted Successfully", null);
+	}
 
-                repository.save(existingAccount);
-            }
-        }
+	public CommonResponse updateAccount(UpdateAccountRequest request) {
 
-        account.setIsDefault(
-                request.getIsDefault());
+		UserAccount account = repository.findById(request.getAccountId()).orElse(null);
 
-        repository.save(account);
+		if (account == null) {
 
-        return new CommonResponse(
-                true,
-                "Account Updated Successfully",
-                account);
-    }
+			return new CommonResponse(false, "Account Not Found", null);
+		}
+
+		account.setAccountName(request.getAccountName());
+
+		if (Boolean.TRUE.equals(request.getIsDefault())) {
+
+			List<UserAccount> defaults = repository.findByUserIdAndIsDefault(1L, true);
+
+			for (UserAccount existingAccount : defaults) {
+
+				existingAccount.setIsDefault(false);
+
+				repository.save(existingAccount);
+			}
+		}
+
+		account.setIsDefault(request.getIsDefault());
+
+		repository.save(account);
+
+		return new CommonResponse(true, "Account Updated Successfully", account);
+	}
 }
