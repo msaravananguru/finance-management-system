@@ -93,6 +93,15 @@ public class IncomeService {
 		            "Cannot Update Deleted Income",
 		            null);
 		}
+		
+		if(request.getAmount() == null
+		        || request.getAmount().doubleValue() <= 0) {
+
+		    return new CommonResponse(
+		            false,
+		            "Amount Must Be Greater Than Zero",
+		            null);
+		}
 
 		UserAccount account = accountRepository.findById(income.getAccountId()).orElse(null);
 
