@@ -67,7 +67,7 @@ public class ExpenseService {
 		Expense expense = new Expense();
 
 		expense.setUserId(1L);
-		// expense.setAccountId(request.getAccountId());
+		expense.setAccountId(request.getAccountId());
 
 		expense.setAmount(request.getAmount());
 
