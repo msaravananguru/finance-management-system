@@ -67,7 +67,7 @@ public class ExpenseService {
 		Expense expense = new Expense();
 
 		expense.setUserId(1L);
-		//expense.setAccountId(request.getAccountId());
+		// expense.setAccountId(request.getAccountId());
 
 		expense.setAmount(request.getAmount());
 
@@ -112,154 +112,96 @@ public class ExpenseService {
 
 		return new CommonResponse(true, "Expense Found", expense);
 	}
-	
-	public CommonResponse updateExpense(
-	        UpdateExpenseRequest request) {
 
-	    Expense expense =
-	            expenseRepository.findById(
-	                    request.getExpenseId())
-	                    .orElse(null);
+	public CommonResponse updateExpense(UpdateExpenseRequest request) {
 
-	    if(expense == null) {
+		Expense expense = expenseRepository.findById(request.getExpenseId()).orElse(null);
 
-	        return new CommonResponse(
-	                false,
-	                "Expense Not Found",
-	                null);
-	    }
+		if (expense == null) {
 
-	    if("DELETED".equals(
-	            expense.getStatus())) {
+			return new CommonResponse(false, "Expense Not Found", null);
+		}
 
-	        return new CommonResponse(
-	                false,
-	                "Cannot Update Deleted Expense",
-	                null);
-	    }
+		if ("DELETED".equals(expense.getStatus())) {
 
-	    UserAccount account =
-	            accountRepository.findById(
-	                    expense.getAccountId())
-	                    .orElse(null);
+			return new CommonResponse(false, "Cannot Update Deleted Expense", null);
+		}
 
-	    if(account == null) {
+		UserAccount account = accountRepository.findById(expense.getAccountId()).orElse(null);
 
-	        return new CommonResponse(
-	                false,
-	                "Account Not Found",
-	                null);
-	    }
+		if (account == null) {
 
-	    account.setCurrentBalance(
-	            account.getCurrentBalance()
-	            .add(expense.getAmount()));
+			return new CommonResponse(false, "Account Not Found", null);
+		}
 
-	    account.setCurrentBalance(
-	            account.getCurrentBalance()
-	            .subtract(request.getAmount()));
+		account.setCurrentBalance(account.getCurrentBalance().add(expense.getAmount()));
 
-	    String category = "OTHER";
+		account.setCurrentBalance(account.getCurrentBalance().subtract(request.getAmount()));
 
-	    List<CategoryMapping> categories =
-	            categoryRepository.findByUserIdAndStatus(
-	                    1L,
-	                    "ACTIVE");
+		String category = "OTHER";
 
-	    String reason =
-	            request.getReason().toLowerCase();
+		List<CategoryMapping> categories = categoryRepository.findByUserIdAndStatus(1L, "ACTIVE");
 
-	    for(CategoryMapping mapping : categories) {
+		String reason = request.getReason().toLowerCase();
 
-	        if(reason.contains(
-	                mapping.getKeyword().toLowerCase())) {
+		for (CategoryMapping mapping : categories) {
 
-	            category =
-	                    mapping.getCategory();
+			if (reason.contains(mapping.getKeyword().toLowerCase())) {
 
-	            break;
-	        }
-	    }
+				category = mapping.getCategory();
 
-	    expense.setAccountId(
-	            request.getAccountId());
+				break;
+			}
+		}
 
-	    expense.setAmount(
-	            request.getAmount());
+		expense.setAccountId(request.getAccountId());
 
-	    expense.setReason(
-	            request.getReason());
+		expense.setAmount(request.getAmount());
 
-	    expense.setCategory(
-	            category);
+		expense.setReason(request.getReason());
 
-	    expense.setDescription(
-	            request.getDescription());
+		expense.setCategory(category);
 
-	    expense.setExpenseDate(
-	            request.getExpenseDate());
+		expense.setDescription(request.getDescription());
 
-	    expenseRepository.save(expense);
+		expense.setExpenseDate(request.getExpenseDate());
 
-	    accountRepository.save(account);
+		expenseRepository.save(expense);
 
-	    return new CommonResponse(
-	            true,
-	            "Expense Updated Successfully",
-	            expense);
+		accountRepository.save(account);
+
+		return new CommonResponse(true, "Expense Updated Successfully", expense);
 	}
 
-	public CommonResponse deleteExpense(
-	        DeleteExpenseRequest request) {
+	public CommonResponse deleteExpense(DeleteExpenseRequest request) {
 
-	    Expense expense =
-	            expenseRepository.findById(
-	                    request.getExpenseId())
-	                    .orElse(null);
+		Expense expense = expenseRepository.findById(request.getExpenseId()).orElse(null);
 
-	    if(expense == null) {
+		if (expense == null) {
 
-	        return new CommonResponse(
-	                false,
-	                "Expense Not Found",
-	                null);
-	    }
+			return new CommonResponse(false, "Expense Not Found", null);
+		}
 
-	    if("DELETED".equals(
-	            expense.getStatus())) {
+		if ("DELETED".equals(expense.getStatus())) {
 
-	        return new CommonResponse(
-	                false,
-	                "Expense Already Deleted",
-	                null);
-	    }
+			return new CommonResponse(false, "Expense Already Deleted", null);
+		}
 
-	    UserAccount account =
-	            accountRepository.findById(
-	                    expense.getAccountId())
-	                    .orElse(null);
+		UserAccount account = accountRepository.findById(expense.getAccountId()).orElse(null);
 
-	    if(account == null) {
+		if (account == null) {
 
-	        return new CommonResponse(
-	                false,
-	                "Account Not Found",
-	                null);
-	    }
+			return new CommonResponse(false, "Account Not Found", null);
+		}
 
-	    account.setCurrentBalance(
-	            account.getCurrentBalance()
-	            .add(expense.getAmount()));
+		account.setCurrentBalance(account.getCurrentBalance().add(expense.getAmount()));
 
-	    accountRepository.save(account);
+		accountRepository.save(account);
 
-	    expense.setStatus("DELETED");
+		expense.setStatus("DELETED");
 
-	    expenseRepository.save(expense);
+		expenseRepository.save(expense);
 
-	    return new CommonResponse(
-	            true,
-	            "Expense Deleted Successfully",
-	            null);
+		return new CommonResponse(true, "Expense Deleted Successfully", null);
 	}
 }
