@@ -1,0 +1,26 @@
+package com.finance.app.dto.goal;
+
+import java.math.BigDecimal;
+
+public class GoalContributionRequest {
+
+    private Long goalId;
+
+    private BigDecimal amount;
+
+    public Long getGoalId() {
+        return goalId;
+    }
+
+    public void setGoalId(Long goalId) {
+        this.goalId = goalId;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+}
