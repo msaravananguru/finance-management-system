@@ -13,10 +13,13 @@ import com.finance.app.dto.dashboard.CategoryExpenseResponse;
 import com.finance.app.dto.dashboard.DashboardResponse;
 import com.finance.app.entity.Expense;
 import com.finance.app.entity.Income;
+import com.finance.app.entity.User;
 import com.finance.app.entity.UserAccount;
 import com.finance.app.repository.ExpenseRepository;
 import com.finance.app.repository.IncomeRepository;
 import com.finance.app.repository.UserAccountRepository;
+import com.finance.app.repository.UserRepository;
+import com.finance.app.security.LoggedInUserUtil;
 
 @Service
 public class DashboardService {
@@ -30,7 +33,15 @@ public class DashboardService {
 	@Autowired
 	private UserAccountRepository accountRepository;
 
+	@Autowired
+	private LoggedInUserUtil loggedInUserUtil;
+	
+	@Autowired
+	private UserRepository userRepository;
+
 	public CommonResponse getDashboard() {
+
+		System.out.println("Logged In User = " + loggedInUserUtil.getUsername());
 
 		DashboardResponse response = new DashboardResponse();
 
@@ -59,8 +70,10 @@ public class DashboardService {
 
 	private BigDecimal calculateTotalIncome() {
 
-		List<Income> incomes = incomeRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<Income> incomes = incomeRepository.findByUserIdAndStatus(getCurrentUserId(), "ACTIVE");
 
+		
+		
 		BigDecimal total = BigDecimal.ZERO;
 
 		for (Income income : incomes) {
@@ -73,7 +86,7 @@ public class DashboardService {
 
 	private BigDecimal calculateTotalExpense() {
 
-		List<Expense> expenses = expenseRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<Expense> expenses = expenseRepository.findByUserIdAndStatus(getCurrentUserId(), "ACTIVE");
 
 		BigDecimal total = BigDecimal.ZERO;
 
@@ -87,7 +100,7 @@ public class DashboardService {
 
 	private BigDecimal calculateTotalAccountBalance() {
 
-		List<UserAccount> accounts = accountRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<UserAccount> accounts = accountRepository.findByUserIdAndStatus(getCurrentUserId(), "ACTIVE");
 
 		BigDecimal total = BigDecimal.ZERO;
 
@@ -103,7 +116,7 @@ public class DashboardService {
 
 		List<AccountBalanceResponse> result = new ArrayList<>();
 
-		List<UserAccount> accounts = accountRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<UserAccount> accounts = accountRepository.findByUserIdAndStatus(getCurrentUserId(), "ACTIVE");
 
 		for (UserAccount account : accounts) {
 
@@ -123,7 +136,7 @@ public class DashboardService {
 
 		List<CategoryExpenseResponse> result = new ArrayList<>();
 
-		List<Expense> expenses = expenseRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<Expense> expenses = expenseRepository.findByUserIdAndStatus(getCurrentUserId(), "ACTIVE");
 
 		java.util.Map<String, BigDecimal> map = new java.util.HashMap<>();
 
@@ -148,5 +161,17 @@ public class DashboardService {
 		}
 
 		return result;
+	}
+	private Long getCurrentUserId() {
+
+	    String username =
+	            loggedInUserUtil.getUsername();
+
+	    User user =
+	            userRepository
+	                    .findByUsername(username)
+	                    .orElseThrow();
+
+	    return user.getId();
 	}
 }

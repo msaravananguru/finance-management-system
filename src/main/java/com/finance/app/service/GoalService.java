@@ -16,13 +16,22 @@ import com.finance.app.dto.goal.GoalDetailsRequest;
 import com.finance.app.dto.goal.GoalSummaryResponse;
 import com.finance.app.dto.goal.UpdateGoalRequest;
 import com.finance.app.entity.FinancialGoal;
+import com.finance.app.entity.User;
 import com.finance.app.repository.FinancialGoalRepository;
+import com.finance.app.repository.UserRepository;
+import com.finance.app.security.LoggedInUserUtil;
 
 @Service
 public class GoalService {
 
 	@Autowired
 	private FinancialGoalRepository goalRepository;
+	
+	@Autowired
+	private LoggedInUserUtil loggedInUserUtil;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	public CommonResponse createGoal(CreateGoalRequest request) {
 
@@ -31,8 +40,12 @@ public class GoalService {
 			return new CommonResponse(false, "Target Amount Must Be Greater Than Zero", null);
 		}
 
-		boolean exists = goalRepository.existsByUserIdAndGoalNameAndStatus(1L, request.getGoalName(), "ACTIVE");
 
+		boolean exists =
+		        goalRepository.existsByUserIdAndGoalNameAndStatus(
+		                getCurrentUserId(),
+		                request.getGoalName(),
+		                "ACTIVE");
 		if (exists) {
 
 			return new CommonResponse(false, "Goal Already Exists", null);
@@ -40,7 +53,7 @@ public class GoalService {
 
 		FinancialGoal goal = new FinancialGoal();
 
-		goal.setUserId(1L);
+		goal.setUserId(getCurrentUserId());
 
 		goal.setGoalName(request.getGoalName());
 
@@ -60,7 +73,9 @@ public class GoalService {
 	public CommonResponse getAllGoals() {
 
 		return new CommonResponse(true, "Goal List Fetched Successfully",
-				goalRepository.findByUserIdAndStatus(1L, "ACTIVE"));
+				goalRepository.findByUserIdAndStatus(
+				        getCurrentUserId(),
+				        "ACTIVE"));
 	}
 
 	public CommonResponse getGoalDetails(GoalDetailsRequest request) {
@@ -149,7 +164,9 @@ public class GoalService {
 
 	public CommonResponse getGoalSummary() {
 
-		List<FinancialGoal> goals = goalRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<FinancialGoal> goals = goalRepository.findByUserIdAndStatus(
+		        getCurrentUserId(),
+		        "ACTIVE");
 
 		List<GoalSummaryResponse> result = new ArrayList<>();
 
@@ -179,5 +196,18 @@ public class GoalService {
 		}
 
 		return new CommonResponse(true, "Goal Summary Generated Successfully", result);
+	}
+	
+	private Long getCurrentUserId() {
+
+	    String username =
+	            loggedInUserUtil.getUsername();
+
+	    User user =
+	            userRepository
+	                    .findByUsername(username)
+	                    .orElseThrow();
+
+	    return user.getId();
 	}
 }

@@ -17,6 +17,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	@Autowired
 	private JwtUtil jwtUtil;
 
+	@Autowired
+	private LoggedInUserUtil loggedInUserUtil;
+
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
@@ -36,6 +39,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			if (valid) {
 
 				String username = jwtUtil.extractUsername(token);
+
+				loggedInUserUtil.setUsername(username);
 
 				System.out.println("Username = " + username);
 			}

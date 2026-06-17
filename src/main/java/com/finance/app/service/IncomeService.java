@@ -11,9 +11,12 @@ import com.finance.app.dto.DeleteIncomeRequest;
 import com.finance.app.dto.IncomeDetailsRequest;
 import com.finance.app.dto.UpdateIncomeRequest;
 import com.finance.app.entity.Income;
+import com.finance.app.entity.User;
 import com.finance.app.entity.UserAccount;
 import com.finance.app.repository.IncomeRepository;
 import com.finance.app.repository.UserAccountRepository;
+import com.finance.app.repository.UserRepository;
+import com.finance.app.security.LoggedInUserUtil;
 
 @Service
 public class IncomeService {
@@ -23,6 +26,12 @@ public class IncomeService {
 
 	@Autowired
 	private UserAccountRepository accountRepository;
+	
+	@Autowired
+	private LoggedInUserUtil loggedInUserUtil;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	public CommonResponse createIncome(CreateIncomeRequest request) {
 
@@ -35,7 +44,7 @@ public class IncomeService {
 
 		Income income = new Income();
 
-		income.setUserId(1L);
+		income.setUserId(getCurrentUserId());
 
 		income.setAccountId(request.getAccountId());
 
@@ -63,7 +72,9 @@ public class IncomeService {
 	public CommonResponse getAllIncome() {
 
 		return new CommonResponse(true, "Income List Fetched Successfully",
-				incomeRepository.findByUserIdAndStatus(1L, "ACTIVE"));
+				incomeRepository.findByUserIdAndStatus(
+				        getCurrentUserId(),
+				        "ACTIVE"));
 	}
 
 	public CommonResponse getIncomeDetails(IncomeDetailsRequest request) {
@@ -161,5 +172,17 @@ public class IncomeService {
 		incomeRepository.save(income);
 
 		return new CommonResponse(true, "Income Deleted Successfully", null);
+	}
+	private Long getCurrentUserId() {
+
+	    String username =
+	            loggedInUserUtil.getUsername();
+
+	    User user =
+	            userRepository
+	                    .findByUsername(username)
+	                    .orElseThrow();
+
+	    return user.getId();
 	}
 }

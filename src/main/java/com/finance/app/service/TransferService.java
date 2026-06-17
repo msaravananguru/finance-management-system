@@ -11,9 +11,12 @@ import com.finance.app.dto.transfer.DeleteTransferRequest;
 import com.finance.app.dto.transfer.TransferDetailsRequest;
 import com.finance.app.dto.transfer.UpdateTransferRequest;
 import com.finance.app.entity.AccountTransfer;
+import com.finance.app.entity.User;
 import com.finance.app.entity.UserAccount;
 import com.finance.app.repository.AccountTransferRepository;
 import com.finance.app.repository.UserAccountRepository;
+import com.finance.app.repository.UserRepository;
+import com.finance.app.security.LoggedInUserUtil;
 
 @Service
 public class TransferService {
@@ -23,6 +26,12 @@ public class TransferService {
 
 	@Autowired
 	private UserAccountRepository accountRepository;
+	
+	@Autowired
+	private LoggedInUserUtil loggedInUserUtil;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	public CommonResponse createTransfer(CreateTransferRequest request) {
 
@@ -52,7 +61,7 @@ public class TransferService {
 
 		AccountTransfer transfer = new AccountTransfer();
 
-		transfer.setUserId(1L);
+		transfer.setUserId(getCurrentUserId());
 
 		transfer.setFromAccountId(request.getFromAccountId());
 
@@ -82,7 +91,9 @@ public class TransferService {
 	public CommonResponse getAllTransfers() {
 
 		return new CommonResponse(true, "Transfer List Fetched Successfully",
-				transferRepository.findByUserIdAndStatus(1L, "ACTIVE"));
+				transferRepository.findByUserIdAndStatus(
+				        getCurrentUserId(),
+				        "ACTIVE"));
 	}
 
 	public CommonResponse getTransferDetails(TransferDetailsRequest request) {
@@ -188,5 +199,18 @@ public class TransferService {
 		transferRepository.save(transfer);
 
 		return new CommonResponse(true, "Transfer Deleted Successfully", null);
+	}
+	
+	private Long getCurrentUserId() {
+
+	    String username =
+	            loggedInUserUtil.getUsername();
+
+	    User user =
+	            userRepository
+	                    .findByUsername(username)
+	                    .orElseThrow();
+
+	    return user.getId();
 	}
 }

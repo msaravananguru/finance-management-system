@@ -12,10 +12,13 @@ import com.finance.app.dto.ExpenseDetailsRequest;
 import com.finance.app.dto.UpdateExpenseRequest;
 import com.finance.app.entity.CategoryMapping;
 import com.finance.app.entity.Expense;
+import com.finance.app.entity.User;
 import com.finance.app.entity.UserAccount;
 import com.finance.app.repository.CategoryMappingRepository;
 import com.finance.app.repository.ExpenseRepository;
 import com.finance.app.repository.UserAccountRepository;
+import com.finance.app.repository.UserRepository;
+import com.finance.app.security.LoggedInUserUtil;
 
 @Service
 public class ExpenseService {
@@ -28,6 +31,12 @@ public class ExpenseService {
 
 	@Autowired
 	private CategoryMappingRepository categoryRepository;
+	
+	@Autowired
+	private LoggedInUserUtil loggedInUserUtil;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	public CommonResponse createExpense(CreateExpenseRequest request) {
 
@@ -50,7 +59,10 @@ public class ExpenseService {
 
 		String category = "OTHER";
 
-		List<CategoryMapping> categories = categoryRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<CategoryMapping> categories =
+		        categoryRepository.findByUserIdAndStatus(
+		                getCurrentUserId(),
+		                "ACTIVE");
 
 		String reason = request.getReason().toLowerCase();
 
@@ -66,7 +78,7 @@ public class ExpenseService {
 
 		Expense expense = new Expense();
 
-		expense.setUserId(1L);
+		expense.setUserId(getCurrentUserId());
 		expense.setAccountId(request.getAccountId());
 
 		expense.setAmount(request.getAmount());
@@ -93,7 +105,9 @@ public class ExpenseService {
 	public CommonResponse getAllExpenses() {
 
 		return new CommonResponse(true, "Expense List Fetched Successfully",
-				expenseRepository.findByUserIdAndStatus(1L, "ACTIVE"));
+				expenseRepository.findByUserIdAndStatus(
+				        getCurrentUserId(),
+				        "ACTIVE"));
 	}
 
 	public CommonResponse getExpenseDetails(ExpenseDetailsRequest request) {
@@ -140,7 +154,10 @@ public class ExpenseService {
 
 		String category = "OTHER";
 
-		List<CategoryMapping> categories = categoryRepository.findByUserIdAndStatus(1L, "ACTIVE");
+		List<CategoryMapping> categories =
+		        categoryRepository.findByUserIdAndStatus(
+		                getCurrentUserId(),
+		                "ACTIVE");
 
 		String reason = request.getReason().toLowerCase();
 
@@ -203,5 +220,18 @@ public class ExpenseService {
 		expenseRepository.save(expense);
 
 		return new CommonResponse(true, "Expense Deleted Successfully", null);
+	}
+	
+	private Long getCurrentUserId() {
+
+	    String username =
+	            loggedInUserUtil.getUsername();
+
+	    User user =
+	            userRepository
+	                    .findByUsername(username)
+	                    .orElseThrow();
+
+	    return user.getId();
 	}
 }
